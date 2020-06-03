@@ -5,7 +5,6 @@ You will need some libraries to successfuly run application
 
 For client.py:
 ```bash
-pip install foobar
 pip install websocket-client
 pip install clint
 ```
