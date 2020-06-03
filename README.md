@@ -1,15 +1,41 @@
 # EncryptedWebsocketChat
 
-Installation
+## Installation
 You will need some libraries to successfuly run application
 
 For client.py:
-    pip install websocket-client
-    pip install clint
-
+```bash
+pip install foobar
+pip install websocket-client
+pip install clint
+```
 For server.py:
-    pip install websockets
-    pip install asyncio
-
+```bash
+pip install websockets
+pip install asyncio
+```
 For RSA-encryption:
-    pip install rsa
+```bash
+pip install rsa
+```
+
+## Usage
+
+Run server.py
+
+```bash
+python server.py
+```
+Server will be running on localhost:1234
+
+Run client.py
+
+```bash
+python client.py
+```
+
+After two clients connected, all messages will become encrypted
+
+## TODO:
+
+### Ability to disconnect without lost of handshake
