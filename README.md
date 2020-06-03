@@ -14,10 +14,6 @@ For server.py:
 pip install websockets
 pip install asyncio
 ```
-For RSA-encryption:
-```bash
-pip install rsa
-```
 
 ## Usage
 
