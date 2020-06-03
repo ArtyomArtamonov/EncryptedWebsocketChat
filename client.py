@@ -5,7 +5,7 @@ from modules.encryption import Encrypter
 
 
 class Client:
-    def settings_message(self, message):
+    def settings_message(self, message): # Settings messages handler
         if message.find('key&') != -1 and self.crypto.partner_public is None:
             self.crypto.save_partner_public(message[message.find('&') + 1:])
             self.ws.send('key&' + str(self.crypto.my_public.n))
@@ -33,7 +33,7 @@ class Client:
         self.ws.send('key&' + str(self.crypto.my_public.n))
         thread.start_new_thread(self.chatting, ())
 
-    def chatting(self):
+    def chatting(self): # Function to input text
         while True:
             message = input()
             try:
@@ -43,9 +43,11 @@ class Client:
                 continue
             self.ws.send(message)
 
-    def main(self):
+    def main(self): # Main function
+        address = input('Server IP address in format {0.0.0.0:1234}: ')
+        address = ('ws://' + address) if address.find('ws://') == -1 else address
         self.name = input('Your name: ')
-        self.ws = websocket.WebSocketApp("ws://localhost:1234/",
+        self.ws = websocket.WebSocketApp(address,
                                          on_message=self.on_message,
                                          on_error=self.on_error,
                                          on_close=self.on_close)
@@ -53,4 +55,4 @@ class Client:
         self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
 
-Client().main()
+Client().main() # Start client
