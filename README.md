@@ -35,3 +35,4 @@ After two clients connected, all messages will become encrypted
 ## TODO:
 
 – Ability to disconnect without lost of handshake
+– Ability to choose server
