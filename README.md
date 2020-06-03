@@ -7,6 +7,7 @@ For client.py:
 ```bash
 pip install websocket-client
 pip install clint
+pip install rsa
 ```
 For server.py:
 ```bash
