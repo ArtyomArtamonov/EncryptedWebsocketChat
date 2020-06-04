@@ -7,6 +7,9 @@ class Server:
     clients = set()
 
     async def register(self, websocket):
+        if len(self.clients) >= 2:
+            await websocket.send('Clients limit is 2 per server. You will not receive any messages')
+            return
         self.clients.add(websocket)
         pass
 

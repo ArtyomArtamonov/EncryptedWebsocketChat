@@ -1,6 +1,8 @@
 import websocket, ssl
 import _thread as thread
 from clint.textui import colored, puts
+
+from modules.commands import Commands
 from modules.encryption import Encrypter
 
 
@@ -9,11 +11,14 @@ class Client:
         'kazakh': 'ws://93.100.235.43:1234',
     }
 
-    def settings_message(self, message): # Settings messages handler
+    def settings_message(self, message):  # Settings messages handler
         if message.find('key&') != -1 and self.crypto.partner_public is None:
             self.crypto.save_partner_public(message[message.find('&') + 1:])
             self.ws.send('key&' + str(self.crypto.my_public.n))
             puts(colored.magenta('All messages are now encrypted!'))
+
+    def commands(self, command):
+        self.command_handler.execute(command)
 
     def on_message(self, message):
         try:
@@ -37,30 +42,40 @@ class Client:
         print("### closed ###")
 
     def on_open(self):
+        puts(colored.green('Connection established, ') +
+             colored.red('but messages are not encrypted yet. Waiting for handshake...'))
+        puts(colored.yellow('Use /help for command list'))
+        self.command_handler = Commands(self.ws, self)
         self.crypto = Encrypter()
         self.ws.send('key&' + str(self.crypto.my_public.n))
         thread.start_new_thread(self.chatting, ())
 
     def send(self, message):
-        try:
-            message = self.crypto.encrypt(message)
-        except:
-            self.send(message[:int(len(message)/2)])
-            self.send(message[int(len(message)/2):])
-            return
-        self.ws.send(message)
+        if self.crypto.partner_public is not None:
+            try:
+                message = self.crypto.encrypt(message)
+            except:
+                self.send(message[:int(len(message) / 2)])
+                self.send(message[int(len(message) / 2):])
+                return
+            self.ws.send(message)
+        else:
+            self.ws.send('UNENCRYPTED ' + message)
 
-    def chatting(self): # Function to input text
+    def chatting(self):  # Function to input text
         while True:
             message = input()
+            if message[0] == '/':  # Calling commands func if message contains '/'
+                self.commands(message)
+                continue
             self.send(self.name + ': ' + message)
 
-    def main(self): # Main function
+    def main(self):  # Main function
         self.DEBUG = False
         if not self.DEBUG:
-            puts(colored.red('aliases: ') + self.aliases)
+            puts(colored.yellow('aliases: ' + str(self.aliases.keys())))
             address = input('Server IP address in format {0.0.0.0:1234} or alias {kazakh}: ')
-            if self.aliases[address] is not None:
+            if address in self.aliases:
                 address = self.aliases[address]
             else:
                 address = ('ws://' + address) if address.find('ws://') == -1 else address
@@ -76,4 +91,4 @@ class Client:
         self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
 
-Client().main() # Start client
+Client().main()  # Start client
