@@ -17,10 +17,14 @@ class Client:
         except:
             pass
         colon = message.find(':')
-        if colon == -1:
+        amper = message.find('&')
+        if amper != -1:
             self.settings_message(message)
             return
-        puts(colored.cyan(message[:colon]) + message[colon:])
+        if colon != -1:
+            puts(colored.cyan(message[:colon]) + message[colon:])
+        else:
+            print(message)
 
     def on_error(self, ws, error):
         print(error)
@@ -33,20 +37,29 @@ class Client:
         self.ws.send('key&' + str(self.crypto.my_public.n))
         thread.start_new_thread(self.chatting, ())
 
+    def send(self, message):
+        try:
+            message = self.crypto.encrypt(message)
+        except:
+            self.send(message[:int(len(message)/2)])
+            self.send(message[int(len(message)/2):])
+            return
+        self.ws.send(message)
+
     def chatting(self): # Function to input text
         while True:
             message = input()
-            try:
-                message = self.crypto.encrypt(self.name + ": " + message)
-            except:
-                self.ws.send('UNENCRYPTED: ' + self.name + ": " + message)
-                continue
-            self.ws.send(message)
+            self.send(self.name + ': ' + message)
 
     def main(self): # Main function
-        address = input('Server IP address in format {0.0.0.0:1234}: ')
-        address = ('ws://' + address) if address.find('ws://') == -1 else address
-        self.name = input('Your name: ')
+        self.DEBUG = False
+        if not self.DEBUG:
+            address = input('Server IP address in format {0.0.0.0:1234}: ')
+            address = ('ws://' + address) if address.find('ws://') == -1 else address
+            self.name = input('Your name: ')
+        else:
+            address = 'ws://localhost:1234'
+            self.name = 'User'
         self.ws = websocket.WebSocketApp(address,
                                          on_message=self.on_message,
                                          on_error=self.on_error,
