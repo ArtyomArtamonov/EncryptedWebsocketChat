@@ -5,6 +5,10 @@ from modules.encryption import Encrypter
 
 
 class Client:
+    aliases = {
+        'kazakh': 'ws://93.100.235.43:1234',
+    }
+
     def settings_message(self, message): # Settings messages handler
         if message.find('key&') != -1 and self.crypto.partner_public is None:
             self.crypto.save_partner_public(message[message.find('&') + 1:])
@@ -54,8 +58,12 @@ class Client:
     def main(self): # Main function
         self.DEBUG = False
         if not self.DEBUG:
-            address = input('Server IP address in format {0.0.0.0:1234}: ')
-            address = ('ws://' + address) if address.find('ws://') == -1 else address
+            puts(colored.red('aliases: ') + self.aliases)
+            address = input('Server IP address in format {0.0.0.0:1234} or alias {kazakh}: ')
+            if self.aliases[address] is not None:
+                address = self.aliases[address]
+            else:
+                address = ('ws://' + address) if address.find('ws://') == -1 else address
             self.name = input('Your name: ')
         else:
             address = 'ws://localhost:1234'
