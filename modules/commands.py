@@ -5,6 +5,8 @@ class Commands:
     def __init__(self, ws, client):
         self.commands = {
             '/exit': self.exit,
+            '/quit': self.exit,
+            '/bye': self.exit,
             '/help': self.help,
         }
         self.client = client
@@ -43,3 +45,5 @@ class Commands:
         command = command[:command.find(' ')] if command.find(' ') != -1 else command
         if command in self.commands:
             self.commands[command](args)
+        else:
+            puts(colored.yellow('Command not found'))

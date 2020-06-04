@@ -12,10 +12,15 @@ class Client:
     }
 
     def settings_message(self, message):  # Settings messages handler
-        if message.find('key&') != -1 and self.crypto.partner_public is None:
+        if message.find('disconnected&') != -1:
+            puts(colored.red('Partner has been disconnected'))
+            self.crypto.partner_public = None
+        elif message.find('key&') != -1 and self.crypto.partner_public is None:
             self.crypto.save_partner_public(message[message.find('&') + 1:])
             self.ws.send('key&' + str(self.crypto.my_public.n))
-            puts(colored.magenta('All messages are now encrypted!'))
+            puts(colored.green('Partner has been connected'))
+            puts(colored.magenta('Handshake. All messages are now encrypted!'))
+        pass
 
     def commands(self, command):
         self.command_handler.execute(command)
@@ -24,16 +29,14 @@ class Client:
         try:
             message = self.crypto.decrypt(message)
         except:
-            pass
+            if message.find('&') != -1 and message.find(':') == -1:
+                self.settings_message(message)
+                return
         colon = message.find(':')
-        amper = message.find('&')
-        if amper != -1:
-            self.settings_message(message)
-            return
         if colon != -1:
             puts(colored.cyan(message[:colon]) + message[colon:])
         else:
-            print(message)
+            puts(message)
 
     def on_error(self, ws, error):
         print(error)

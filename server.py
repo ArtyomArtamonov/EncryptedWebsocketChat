@@ -16,11 +16,13 @@ class Server:
     async def unregister(self, websocket):
         print('Client disconnected')
         self.clients.remove(websocket)
+        await self.send_to_clients(message='disconnected&')
 
     async def send_to_clients(self, message, websocket=None):
         if self.clients:
             new_clients = copy.copy(self.clients)
-            new_clients.remove(websocket)
+            if websocket is not None:
+                new_clients.remove(websocket)
             print(message)
             try:
                 await asyncio.wait([client.send(message) for client in new_clients])
