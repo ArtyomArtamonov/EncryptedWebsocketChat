@@ -22,7 +22,6 @@ Run server.py
 ```bash
 python server.py
 ```
-Server will be running on localhost:1234
 
 Run client.py
 
