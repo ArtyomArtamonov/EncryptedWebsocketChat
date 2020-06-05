@@ -1,6 +1,9 @@
 import websockets
 import asyncio
 import copy
+import json
+
+from modules.formats import Message
 
 
 class Server:
@@ -16,7 +19,8 @@ class Server:
     async def unregister(self, websocket):
         print('Client disconnected')
         self.clients.remove(websocket)
-        await self.send_to_clients(message='disconnected&')
+        message = json.dumps(vars(Message('System', 1)))
+        await self.send_to_clients(message=message)
 
     async def send_to_clients(self, message, websocket=None):
         if self.clients:

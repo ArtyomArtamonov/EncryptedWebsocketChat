@@ -11,7 +11,10 @@ class Encrypter:
         self.partner_public = None
 
     def decrypt(self, chipher): # Decrypt message
-        return rsa.decrypt(chipher.encode('latin1'), self.my_private).decode('utf8')
+        try:
+            return rsa.decrypt(chipher.encode('latin1'), self.my_private).decode('utf8')
+        except rsa.DecryptionError:
+            return chipher
 
     def encrypt(self, message): # Encrypt Message
         return rsa.encrypt(message.encode('utf8'), self.partner_public).decode('latin1')

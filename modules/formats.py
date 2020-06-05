@@ -5,7 +5,11 @@ class Message:
 
 '''
 _____________________________________________________________
-| Type |           Message           | Setting | Handshake  |
-| Data | {'Name':'', 'Message': ''}  | string  |    int     |
+| Type |           Message           | System  | Handshake  |
+| Data | {'Name':'', 'Message': ''}  |  int    |    int     |
 |______|_____________________________|_________|____________|
+
+System: 
+1 Partner disconnect
+2 ...
 '''

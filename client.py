@@ -5,10 +5,11 @@ import ssl
 import websocket
 from clint.textui import colored, puts
 
-from rsa import DecryptionError
 from modules.commands import Commands
 from modules.encryption import Encrypter
 from modules.formats import Message
+
+DEBUG = False
 
 
 class Client:
@@ -17,56 +18,43 @@ class Client:
     }
 
     def __init__(self):
+        self.crypto = Encrypter()
         self.current_messages = []
-
-    def settings_message(self, message):  # Settings messages handler
-        if message.find('disconnected&') != -1:
-            puts(colored.red('Partner has been disconnected'))
-            self.crypto.partner_public = None
-        elif message.find('key&') != -1 and self.crypto.partner_public is None:
-            self.crypto.save_partner_public(message[message.find('&') + 1:])
-            self.ws.send('key&' + str(self.crypto.my_public.n))
-            puts(colored.green('Partner has been connected'))
-            puts(colored.magenta('Handshake. All messages are now encrypted!'))
-        pass
 
     def handshake(self, key):
         if self.crypto.partner_public is None:
             self.crypto.save_partner_public(key)
             handshake = json.dumps(vars(Message('Handshake', self.crypto.my_public.n)))
             self.send(handshake, False)
-            puts(colored.green('Partner has been connected'))
-            puts(colored.magenta('Handshake. All messages are now encrypted!'))
+            puts(colored.magenta('Partner has been connected. All messages are now encrypted!'))
 
     def commands(self, command):
         self.command_handler.execute(command)
-
-    def decrypt_message(self, message): # Todo: Delete this func and rewrite an encryption module
-        try:
-            message = self.crypto.decrypt(message)
-            return message
-        except DecryptionError:
-            return message
 
     def put_user_message(self, message):
         name = message['data']['Name']
         message = message['data']['Message']
         puts(colored.cyan(name + ': ') + message)
 
-    def sender(self, message):
+    def message_handler(self, message):
         if 'type' in message and message['type'] == 'Handshake':
             self.handshake(message['data'])
         elif 'type' in message and message['type'] == 'Message':
             self.put_user_message(message)
+        elif 'type' in message and message['type'] == 'System':
+            data = message['data']
+            if data == 1:  # 'Partner has disconnected' message from server
+                self.crypto.partner_public = None
+                puts(colored.magenta('Partner has disconnected. All messages are now unencrypted!'))
 
     def on_message(self, message_part):
         try:
-            self.current_messages.append(self.decrypt_message(message_part))
+            self.current_messages.append(self.crypto.decrypt(message_part))
             message = ''
             for m in self.current_messages:
                 message += m
             message = json.loads(message)
-            self.sender(message)
+            self.message_handler(message)
             self.current_messages = []
         except Exception as e:
             pass
@@ -79,10 +67,8 @@ class Client:
 
     def on_open(self):
         puts(colored.green('Connection established, ') +
-             colored.red('but messages are not encrypted yet. Waiting for handshake...'))
-        puts(colored.yellow('Use /help for command list'))
-        self.command_handler = Commands(self.ws, self)
-        self.crypto = Encrypter()
+             colored.red('but messages are not encrypted yet.'))
+        puts(colored.yellow('Use /help for command list. /exit to leave server'))
         handshake = json.dumps(vars(Message('Handshake', self.crypto.my_public.n)))
         self.send(handshake, False)
         thread.start_new_thread(self.chatting, ())
@@ -109,9 +95,8 @@ class Client:
             self.send(json.dumps(vars(message)))
 
     def main(self):  # Main function
-        self.DEBUG = False
-        if not self.DEBUG:
-            puts(colored.yellow('aliases: ' + str(self.aliases.keys())))
+        if not DEBUG:
+            puts(colored.yellow('Server shortcuts: ' + str([key for key in self.aliases.keys()])))
             address = input('Server IP address in format {0.0.0.0:1234} or alias {kazakh}: ')
             if address in self.aliases:
                 address = self.aliases[address]
@@ -125,6 +110,7 @@ class Client:
                                          on_message=self.on_message,
                                          on_error=self.on_error,
                                          on_close=self.on_close)
+        self.command_handler = Commands(self.ws, self)
         self.ws.on_open = self.on_open
         self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 

@@ -18,7 +18,7 @@ class Commands:
         pass
 
     def help(self, args):
-        self.out(str(self.commands.keys())) # Print commands list
+        self.out(str([key for key in self.commands.keys()])) # Print commands list
 
     def out(self, text):
         puts(colored.yellow(text))
