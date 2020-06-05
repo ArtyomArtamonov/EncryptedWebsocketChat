@@ -1,15 +1,23 @@
-import websocket, ssl
 import _thread as thread
+import json
+
+import ssl
+import websocket
 from clint.textui import colored, puts
 
+from rsa import DecryptionError
 from modules.commands import Commands
 from modules.encryption import Encrypter
+from modules.formats import Message
 
 
 class Client:
     aliases = {
         'kazakh': 'ws://93.100.235.43:1234',
     }
+
+    def __init__(self):
+        self.current_messages = []
 
     def settings_message(self, message):  # Settings messages handler
         if message.find('disconnected&') != -1:
@@ -22,21 +30,46 @@ class Client:
             puts(colored.magenta('Handshake. All messages are now encrypted!'))
         pass
 
+    def handshake(self, key):
+        if self.crypto.partner_public is None:
+            self.crypto.save_partner_public(key)
+            handshake = json.dumps(vars(Message('Handshake', self.crypto.my_public.n)))
+            self.send(handshake, False)
+            puts(colored.green('Partner has been connected'))
+            puts(colored.magenta('Handshake. All messages are now encrypted!'))
+
     def commands(self, command):
         self.command_handler.execute(command)
 
-    def on_message(self, message):
+    def decrypt_message(self, message): # Todo: Delete this func and rewrite an encryption module
         try:
             message = self.crypto.decrypt(message)
-        except:
-            if message.find('&') != -1 and message.find(':') == -1:
-                self.settings_message(message)
-                return
-        colon = message.find(':')
-        if colon != -1:
-            puts(colored.cyan(message[:colon]) + message[colon:])
-        else:
-            puts(message)
+            return message
+        except DecryptionError:
+            return message
+
+    def put_user_message(self, message):
+        name = message['data']['Name']
+        message = message['data']['Message']
+        puts(colored.cyan(name + ': ') + message)
+
+    def sender(self, message):
+        if 'type' in message and message['type'] == 'Handshake':
+            self.handshake(message['data'])
+        elif 'type' in message and message['type'] == 'Message':
+            self.put_user_message(message)
+
+    def on_message(self, message_part):
+        try:
+            self.current_messages.append(self.decrypt_message(message_part))
+            message = ''
+            for m in self.current_messages:
+                message += m
+            message = json.loads(message)
+            self.sender(message)
+            self.current_messages = []
+        except Exception as e:
+            pass
 
     def on_error(self, ws, error):
         print(error)
@@ -50,11 +83,12 @@ class Client:
         puts(colored.yellow('Use /help for command list'))
         self.command_handler = Commands(self.ws, self)
         self.crypto = Encrypter()
-        self.ws.send('key&' + str(self.crypto.my_public.n))
+        handshake = json.dumps(vars(Message('Handshake', self.crypto.my_public.n)))
+        self.send(handshake, False)
         thread.start_new_thread(self.chatting, ())
 
-    def send(self, message):
-        if self.crypto.partner_public is not None:
+    def send(self, message, encrypted=True):
+        if self.crypto.partner_public is not None and encrypted is True:
             try:
                 message = self.crypto.encrypt(message)
             except:
@@ -63,15 +97,16 @@ class Client:
                 return
             self.ws.send(message)
         else:
-            self.ws.send('UNENCRYPTED ' + message)
+            self.ws.send(message)  # Unencrypted
 
     def chatting(self):  # Function to input text
         while True:
             message = input()
-            if message[0] == '/':  # Calling commands func if message contains '/'
+            if message[0] == '/':  # Call the commands func if message contains '/'
                 self.commands(message)
                 continue
-            self.send(self.name + ': ' + message)
+            message = Message('Message', {'Name': self.name, 'Message': message})
+            self.send(json.dumps(vars(message)))
 
     def main(self):  # Main function
         self.DEBUG = False
