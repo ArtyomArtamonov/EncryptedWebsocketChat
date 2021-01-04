@@ -4,7 +4,7 @@ from rsa import PublicKey
 
 class Encrypter:
     const = 65537 # IDK what that constant do, just let it here
-    key_length = 1024 # 1024 bits key length
+    key_length = 2048 # 1024 bits key length
 
     def __init__(self):
         (self.my_public, self.my_private) = rsa.newkeys(self.key_length) # Generate new pair of keys
