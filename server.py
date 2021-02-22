@@ -46,9 +46,10 @@ class Server:
             await self.send_to_clients(message, websocket)
 
 
-address = input('Enter IP address: ')
-port = input('port: ')
-server = Server()
-start_server = websockets.serve(server.handler, address, int(port))
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+if __name__ == '__main__':
+    address = input('Enter IP address: ')
+    port = input('port: ')
+    server = Server()
+    start_server = websockets.serve(server.handler, address, int(port))
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()

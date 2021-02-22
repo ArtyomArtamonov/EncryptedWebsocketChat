@@ -13,10 +13,6 @@ DEBUG = False
 
 
 class Client:
-    aliases = {
-        'kazakh': 'ws://93.100.235.43:1234',
-    }
-
     def __init__(self):
         self.crypto = Encrypter()
         self.current_messages = []
@@ -96,12 +92,8 @@ class Client:
 
     def main(self):  # Main function
         if not DEBUG:
-            puts(colored.yellow('Server shortcuts: ' + str([key for key in self.aliases.keys()])))
-            address = input('Server IP address in format {0.0.0.0:1234} or alias {kazakh}: ')
-            if address in self.aliases:
-                address = self.aliases[address]
-            else:
-                address = ('ws://' + address) if address.find('ws://') == -1 else address
+            address = input('Server IP address in format {0.0.0.0:1234}: ')
+            address = ('ws://' + address) if address.find('ws://') == -1 else address
             self.name = input('Your name: ')
         else:
             address = 'ws://localhost:1234'
@@ -115,4 +107,5 @@ class Client:
         self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
 
-Client().main()  # Start client
+if __name__ == '__main__':
+    Client().main()  # Start client
