@@ -10,7 +10,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -77,9 +76,6 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
-# dotenv
-.env
-
 # Spyder project settings
 .spyderproject
 
@@ -95,8 +91,6 @@ celerybeat-schedule
 [Ll]ib64
 [Ll]ocal
 [Ss]cripts
-pyvenv.cfg
-.venv
 pip-selfcheck.json
 ### JetBrains template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and Webstorm
