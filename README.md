@@ -5,18 +5,11 @@ This is a simple python client and server, that allows 2 clients to send message
 Every message is encrypted using [RSA cryptosystem](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
 
 ## Requirements
-You will need some libraries to successfuly run application
+Activate virtual environment:
 
-For client.py:
+### On Linux and Macos
 ```bash
-pip install websocket-client
-pip install clint
-pip install rsa
-```
-For server.py:
-```bash
-pip install websockets
-pip install asyncio
+source venv/bin/activate
 ```
 
 ## Usage
