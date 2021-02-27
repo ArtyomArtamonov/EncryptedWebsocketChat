@@ -3,7 +3,6 @@ import json
 
 import ssl
 import websocket
-from clint.textui import colored, puts
 
 from modules.commands import Commands
 from modules.encryption import Encrypter
@@ -22,7 +21,7 @@ class Client:
             self.crypto.save_partner_public(key)
             handshake = json.dumps(vars(Message('Handshake', self.crypto.my_public.n)))
             self.send(handshake, False)
-            puts(colored.magenta('Partner has been connected. All messages are now encrypted!'))
+            print('Partner has been connected. All messages are now encrypted!')
 
     def commands(self, command):
         self.command_handler.execute(command)
@@ -30,7 +29,7 @@ class Client:
     def put_user_message(self, message):
         name = message['data']['Name']
         message = message['data']['Message']
-        puts(colored.cyan(name + ': ') + message)
+        print(name + ': ' + message)
 
     def message_handler(self, message):
         if 'type' in message and message['type'] == 'Handshake':
@@ -41,7 +40,7 @@ class Client:
             data = message['data']
             if data == 1:  # 'Partner has disconnected' message from server
                 self.crypto.partner_public = None
-                puts(colored.magenta('Partner has disconnected. All messages are now unencrypted!'))
+                print('Partner has disconnected. All messages are now unencrypted!')
 
     def on_message(self, message_part):
         try:
@@ -62,9 +61,9 @@ class Client:
         print("### closed ###")
 
     def on_open(self):
-        puts(colored.green('Connection established, ') +
-             colored.red('but messages are not encrypted yet.'))
-        puts(colored.yellow('Use /help for command list. /exit to leave server'))
+        print('Connection established, ')
+        print('but messages are not encrypted yet.')
+        print('Use /help for command list. /exit to leave server')
         handshake = json.dumps(vars(Message('Handshake', self.crypto.my_public.n)))
         self.send(handshake, False)
         thread.start_new_thread(self.chatting, ())

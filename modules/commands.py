@@ -1,5 +1,4 @@
 import sys
-from clint.textui import colored, puts
 
 class Commands:
     def __init__(self, ws, client):
@@ -21,7 +20,7 @@ class Commands:
         self.out(str([key for key in self.commands.keys()])) # Print commands list
 
     def out(self, text):
-        puts(colored.yellow(text))
+        print(text)
 
     def get_args(self, command):
         args = []
@@ -46,4 +45,4 @@ class Commands:
         if command in self.commands:
             self.commands[command](args)
         else:
-            puts(colored.yellow('Command not found'))
+            print('Command not found')
